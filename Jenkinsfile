@@ -52,13 +52,13 @@ pipeline {
                 agent {
                     label '${PLATFORM}'
                 }
-                tools {
-                    jdk '${JDK}'
-                }
-                stage {
-                    steps {
-                        withVault([vaultSecrets: secrets]) {
-                            sh './gradlew clean eclipseTest -Peclipse.version=${ECLIPSE_VERSION} -Pbuild.invoker=CI --info --stacktrace'
+                stages {
+                    stage ('Basic Test Coverage for Eclipse ${ECLIPSE_VERSION} on ${JDK} on ${PLATFORM}') {
+                        steps {
+                            tool name: '${JDK}', type: 'jdk'
+                            withVault([vaultSecrets: secrets]) {
+                                sh './gradlew clean eclipseTest -Peclipse.version=${ECLIPSE_VERSION} -Pbuild.invoker=CI --info --stacktrace'
+                            }
                         }
                     }
                 }
