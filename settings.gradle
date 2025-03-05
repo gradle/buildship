@@ -58,7 +58,7 @@ boolean remoteCacheAvailable = cacheUrl != '' && cacheUrl != '' && cachePassword
 
 buildCache {
     local {
-        enabled = !remoteCacheAvailable
+        enabled = !remoteCacheAvailable && !isCI
     }
 
     if (remoteCacheAvailable) {
@@ -69,6 +69,11 @@ buildCache {
                 password = cachePassword
                 push = true
             }
+        }
+    } else {
+        remote(develocity.buildCache) {
+            enabled = true
+            push = isCI
         }
     }
 }
