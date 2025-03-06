@@ -1,5 +1,6 @@
-// allow build to publish build scans to develocity-staging.eclipse.org
-def secrets = [
+#!groovy
+
+secrets = [
   [path: 'cbi/tools.buildship/develocity.eclipse.org', secretValues: [
     [envVar: 'DEVELOCITY_ACCESS_KEY', vaultKey: 'api-token']
     ]
@@ -16,36 +17,34 @@ pipeline {
      triggers {
         githubPush()
     }
+
+    tools {
+        // https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
+        jdk 'temurin-jdk8-latest'
+        jdk 'temurin-jdk11-latest'
+        jdk 'temurin-jdk17-latest'
+    }
     
      stages {
          stage('Sanity check') {
-            // Change agent config when windows agents become available
             agent {
                 label 'basic-ubuntu'
             }
-            //agent any
             options {
                 timeout(time: 10, unit: 'MINUTES')
             }
-            tools {
-                // https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
-                jdk 'temurin-jdk11-latest'
-            }
             steps {
-                withVault([vaultSecrets: secrets]) {
-                    sh './gradlew assemble checkstyleMain -Peclipse.version=434 -Pbuild.invoker=CI --info --stacktrace'
-                }
-                
+                buildGradle("temurin-jdk11-latest", "4.34", "clean assemble checkstyleMain")
             }
         }
 
         stage('Basic Test Coverage') {
             matrix {
                 axes {
-                    // Change agent config when windows agents become available
+                    // TODO: Change agent config when windows agents become available
                     axis {
                         name 'PLATFORM'
-                        values 'linux', 'windows'
+                        values 'basic-ubuntu', 'windows'
                     }
                     axis {
                         name 'JDK'
@@ -57,7 +56,7 @@ pipeline {
                     }
                 }
 
-                // Remove this exclude when windows agents become available
+                // TODO: Remove this exclude when windows agents become available
                 excludes {
                     exclude {
                         axis {
@@ -67,21 +66,13 @@ pipeline {
                     }
                 }
 
-                // Change agent config when windows agents become available
-                //agent {
-                //    label '${PLATFORM}'
-                //}
-                agent any
+                agent {
+                    label '${PLATFORM}'
+                }
                 stages {
                     stage ('Basic Test matrix build') {
                         steps {
-                            tool name: "${JDK}", type: 'jdk'
-                            script {
-                                def eclipseVersion = "${ECLIPSE_VERSION}".replace(".", "")
-                                withVault([vaultSecrets: secrets]) {
-                                    sh './gradlew clean eclipseTest -Peclipse.version=${ECLIPSE_VERSION} -Pbuild.invoker=CI --info --stacktrace'
-                                }
-                            }
+                            buildGradle("${JDK}", "${ECLIPSE_VERSION}", "clean eclipseTest")
                         }
                     }
                 }
@@ -91,10 +82,10 @@ pipeline {
          stage('Full Test Coverage') {
              matrix {
                  axes {
-                     // Change agent config when windows agents become available
+                     // TODO: Change agent config when windows agents become available
                      axis {
                          name 'PLATFORM'
-                         values 'linux', 'windows'
+                         values 'basic-ubuntu', 'windows'
                      }
                      axis {
                          name 'JDK'
@@ -107,7 +98,7 @@ pipeline {
                  }
 
                 excludes {
-                    // Remove this exclude when windows agents become available
+                    // TODO: Remove this exclude when windows agents become available
                     exclude {
                         axis {
                             name 'PLATFORM'
@@ -117,6 +108,7 @@ pipeline {
                     exclude {
                         axis {
                             name 'PLATFORM'
+                            // TODO: Change agent config when windows agents become available
                             values 'windows'
                         }
                         axis {
@@ -126,26 +118,31 @@ pipeline {
                     }
                 }
 
-                 // Change agent config when windows agents become available
-                 //agent {
-                 //    label '${PLATFORM}'
-                 //}
-                 agent any
+                 agent {
+                     label '${PLATFORM}'
+                 }
                  stages {
                      stage ('Full Test matrix build') {
                          steps {
-                             tool name: "${JDK}", type: 'jdk'
-                             script {
-                                 def eclipseVersion = "${ECLIPSE_VERSION}".replace(".", "")
-
-                                 withVault([vaultSecrets: secrets]) {
-                                 sh './gradlew clean build -Peclipse.version=${ECLIPSE_VERSION} -Pbuild.invoker=CI --info --stacktrace'
-                                 }
-                             }
+                             buildGradle("${JDK}", "${ECLIPSE_VERSION}", "clean build")
                          }
                      }
                  }
              }
          }
+    }
+}
+
+
+def buildGradle(jdk, eclipseVersion, cmdline) {
+    script {
+        def eclipse = "$eclipseVersion".replace(".", "")
+        withEnv(["JAVA_HOME=${ tool "$jdk" }",
+            "PATH=${ tool "$jdk" }/bin:$PATH"]) {
+            sh 'java --version'
+            withVault([vaultSecrets: secrets]) {
+                sh "./gradlew $cmdline -Peclipse.version=$eclipse -Pbuild.invoker=CI --info --stacktrace"
+            }
+        }
     }
 }
