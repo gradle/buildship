@@ -1,6 +1,6 @@
 #!groovy
 
-def secrets = [
+secrets = [
 	[path: 'cbi/tools.buildship/develocity.eclipse.org', secretValues: [
 		[envVar: 'DEVELOCITY_ACCESS_KEY', vaultKey: 'api-token']
 	]
@@ -10,8 +10,8 @@ def secrets = [
 def basicConfigs = [
 	[jdk: 'jdk11', eclipseVersion: '4.8', platform: 'basic-ubuntu'],
 	[jdk: 'jdk11', eclipseVersion: '4.34', platform: 'basic-ubuntu'],
-	//[jdk: 'jdk17', eclipseVersion: '4.8', platform: 'basic-windows'],
-	//[jdk: 'jdk17', eclipseVersion: '4.34',platform: 'basic-windows'],
+	//[jdk: 'jdk11', eclipseVersion: '4.8', platform: 'basic-windows'],
+	//[jdk: 'jdk11', eclipseVersion: '4.34',platform: 'basic-windows'],
 ]
 
 def parallelBasicStagesMap = basicConfigs.collectEntries {
@@ -48,15 +48,19 @@ pipeline {
 			}
 		}
 
-		stage('Basic Test Coverage') {
-			agent none
-			options {
-				timeout(time: 5, unit: 'MINUTES')
-			}
-			parallel parallelBasicStagesMap
-		}
+		//stage('Basic Test Coverage') {
+		//	agent none
+		//	options {
+		//		timeout(time: 5, unit: 'MINUTES')
+		//	}
+		//	steps {
+		//		script {
+		//			parallel parallelBasicStagesMap
+		//		}
+		//	}
+		//}
 
-		/**
+
 		stage('Basic Test Coverage') {
 			options {
 				timeout(time: 3, unit: 'MINUTES')
@@ -100,7 +104,7 @@ pipeline {
 				}
 			}
 		}
-		**/
+
 
 		/**
 		stage('Full Test Coverage') {
