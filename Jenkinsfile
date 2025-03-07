@@ -205,7 +205,7 @@ def buildGradle(name, eclipseVersion, cmdline) {
 		echo "Running $name with cmd '$cmdline' on Eclipse $eclipseVersion"
 		def eclipse = "$eclipseVersion".replace(".", "")
 		withVault([vaultSecrets: secrets]) {
-			echo "./gradlew $cmdline -Peclipse.version=$eclipse -Pbuild.invoker=CI --info --stacktrace"
+			sh "./gradlew $cmdline -Peclipse.version=$eclipse -Pbuild.invoker=CI --info --stacktrace"
 		}
 	}
 }
