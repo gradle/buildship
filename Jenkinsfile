@@ -31,6 +31,12 @@ pipeline {
 		githubPush()
 	}
 
+	tools {
+		// https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
+		jdk 'temurin-jdk11-latest'
+		jdk 'temurin-jdk17-latest'
+	}
+
 	stages {
 		stage('Sanity check') {
 			agent {
@@ -38,10 +44,6 @@ pipeline {
 			}
 			options {
 				timeout(time: 5, unit: 'MINUTES')
-			}
-			tools {
-				// https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
-				jdk 'temurin-jdk11-latest'
 			}
 			steps {
 				buildGradle("temurin-jdk11-latest", "4.34", "clean assemble checkstyleMain")
@@ -59,7 +61,6 @@ pipeline {
 		//		}
 		//	}
 		//}
-
 
 		stage('Basic Test Coverage') {
 			options {
@@ -85,10 +86,15 @@ pipeline {
 				// TODO: Remove this exclude when windows agents become available
 				excludes {
 					exclude {
-						axis {
-							name 'PLATFORM'
-							values 'windows'
-						}
+						axis { name 'PLATFORM'; values 'windows' }
+					}
+					exclude {
+                        axis { name 'JDK'; values 'temurin-jdk17-latest' }
+						axis { name 'ECILPSE_VERSION'; values '4.8' }
+                    }
+					exclude {
+						axis { name 'JDK'; values 'temurin-jdk11-latest' }
+						axis { name 'ECILPSE_VERSION'; values '4.34' }
 					}
 				}
 
