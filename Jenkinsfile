@@ -81,8 +81,8 @@ pipeline {
 					}
 				}
 
-				// TODO: Remove this exclude when windows agents become available
 				excludes {
+					// TODO: Remove this exclude when windows agents become available
 					exclude {
 						axis { name 'PLATFORM'; values 'windows' }
 					}
@@ -97,7 +97,7 @@ pipeline {
 				}
 
 				agent {
-					label '${PLATFORM}'
+					label "${PLATFORM}"
 				}
 				stages {
 					stage ('Basic Test matrix build') {
