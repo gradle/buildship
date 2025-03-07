@@ -24,7 +24,7 @@ pipeline {
 				label 'basic-ubuntu'
 			}
 			options {
-				timeout(time: 2, unit: 'HOURS')
+				timeout(time: 1, unit: 'HOURS')
 			}
 			tools {
 				// https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
@@ -36,9 +36,6 @@ pipeline {
 		}
 
 		stage('Basic Test Coverage') {
-			options {
-				timeout(time: 2, unit: 'HOURS')
-			}
 			matrix {
 				axes {
 					// TODO: Change agent config when windows agents become available
@@ -61,13 +58,15 @@ pipeline {
 					exclude {
 						axis { name 'PLATFORM'; values 'windows' }
 					}
+					// Limit eclipse 4.8 to jdk11
 					exclude {
-                        axis { name 'JDK_VERSION'; values 'temurin-jdk17-latest' }
 						axis { name 'ECLIPSE_VERSION'; values '4.8' }
+						axis { name 'JDK_VERSION'; notValues 'temurin-jdk11-latest' }
                     }
+					// Limit eclipse 4.34 to jdk17
 					exclude {
-						axis { name 'JDK_VERSION'; values 'temurin-jdk11-latest' }
 						axis { name 'ECLIPSE_VERSION'; values '4.34' }
+						axis { name 'JDK_VERSION'; notValues 'temurin-jdk17-latest' }
 					}
 				}
 
@@ -79,8 +78,11 @@ pipeline {
 				}
 				stages {
 					stage ('Basic Test matrix build') {
+						options {
+							timeout(time: 1, unit: 'HOURS')
+						}
 						steps {
-							buildGradle("Basic Test matrix build", "${ECLIPSE_VERSION}", "clean eclipseTest")
+							buildGradle("Basic Test matrix build on ${JDK_VERSION} (${PLATFORM})", "${ECLIPSE_VERSION}", "clean eclipseTest")
 						}
 					}
 				}
@@ -88,9 +90,6 @@ pipeline {
 		}
 
 		stage('Full Test Coverage') {
-			options {
-				timeout(time: 2, unit: 'HOURS')
-			}
 			matrix {
 				axes {
 					// TODO: Change agent config when windows agents become available
@@ -113,6 +112,7 @@ pipeline {
 					exclude {
 						axis { name 'PLATFORM'; values 'windows' }
 					}
+					// Limit windows to eclipse 4.8 and 4.34
 					exclude {
 						axis { name 'PLATFORM'; values 'windows' }
 						axis { name 'ECLIPSE_VERSION'; notValues '4.8', '4.34' }
@@ -122,7 +122,7 @@ pipeline {
 						axis { name 'JDK_VERSION'; values 'temurin-jdk17-latest' }
 						axis { name 'ECLIPSE_VERSION'; values '4.8', '4.9', '4.10', '4.11', '4.12', '4.13', '4.14', '4.15', '4.16', '4.17', '4.18', '4.19', '4.20', '4.21', '4.22', '4.23', '4.24' }
 					}
-					// Limit jdk11 to max eclipse 4.24
+					// Limit eclipse 4.25+ to jdk17 (technically jdk11 to max eclipse 4.24)
 					exclude {
 						axis { name 'JDK_VERSION'; values 'temurin-jdk11-latest' }
 						axis { name 'ECLIPSE_VERSION'; notValues '4.8', '4.9', '4.10', '4.11', '4.12', '4.13', '4.14', '4.15', '4.16', '4.17', '4.18', '4.19', '4.20', '4.21', '4.22', '4.23', '4.24' }
@@ -137,8 +137,11 @@ pipeline {
 				}
 				stages {
 					stage ('Full Test matrix build') {
+						options {
+							timeout(time: 1, unit: 'HOURS')
+						}
 						steps {
-							buildGradle("Full Test matrix build", "${ECLIPSE_VERSION}", "clean build")
+							buildGradle("Full Test matrix build on ${JDK_VERSION} (${PLATFORM})", "${ECLIPSE_VERSION}", "clean build")
 						}
 					}
 				}
@@ -146,9 +149,6 @@ pipeline {
 		}
 
 		stage('Cross-Version Test Coverage') {
-			options {
-				timeout(time: 5, unit: 'MINUTES')
-			}
 			matrix {
 				axes {
 					axis {
@@ -162,14 +162,17 @@ pipeline {
 				}
 
 				excludes {
+					// Limit jdk8 to eclipse 4.8
 					exclude {
 						axis { name 'ECLIPSE_VERSION'; values '4.8' }
 						axis { name 'JDK_VERSION'; notValues 'temurin-jdk8-latest' }
 					}
+					// Exclude jdk8 from eclipse 4.23 tests
 					exclude {
 						axis { name 'ECLIPSE_VERSION'; values '4.23' }
 						axis { name 'JDK_VERSION'; values 'temurin-jdk8-latest'}
 					}
+					// Limit eclipse 4.34 to jdk17
 					exclude {
 						axis { name 'ECLIPSE_VERSION'; values '4.34' }
 						axis { name 'JDK_VERSION'; notValues 'temurin-jdk17-latest' }
@@ -184,8 +187,11 @@ pipeline {
 				}
 				stages {
 					stage ('Cross-Version Test matrix build') {
+						options {
+							timeout(time: 1, unit: 'HOURS')
+						}
 						steps {
-							buildGradle("Cross-Version Test matrix build", "${ECLIPSE_VERSION}", "clean eclipseTest")
+							buildGradle("Cross-Version Test matrix build on ${JDK_VERSION}", "${ECLIPSE_VERSION}", "clean eclipseTest")
 						}
 					}
 				}
@@ -196,9 +202,8 @@ pipeline {
 
 def buildGradle(name, eclipseVersion, cmdline) {
 	script {
-		echo "Running $name with cmd $cmdline on Eclipse $eclipseVersion"
+		echo "Running $name with cmd '$cmdline' on Eclipse $eclipseVersion"
 		def eclipse = "$eclipseVersion".replace(".", "")
-		sh 'java --version'
 		withVault([vaultSecrets: secrets]) {
 			echo "./gradlew $cmdline -Peclipse.version=$eclipse -Pbuild.invoker=CI --info --stacktrace"
 		}
