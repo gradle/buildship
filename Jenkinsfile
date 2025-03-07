@@ -7,17 +7,6 @@ secrets = [
 	]
 ]
 
-//def basicConfigs = [
-//	[jdk: 'jdk11', eclipseVersion: '4.8', platform: 'basic-ubuntu'],
-//	[jdk: 'jdk11', eclipseVersion: '4.34', platform: 'basic-ubuntu'],
-//	//[jdk: 'jdk11', eclipseVersion: '4.8', platform: 'basic-windows'],
-//	//[jdk: 'jdk11', eclipseVersion: '4.34',platform: 'basic-windows'],
-//]
-//
-//def parallelBasicStagesMap = basicConfigs.collectEntries {
-//	["${it}": generateStage("Basic Test Coverage", "clean eclipseTest", it)]
-//}
-
 pipeline {
 	agent none
 
@@ -35,20 +24,20 @@ pipeline {
 				label 'basic-ubuntu'
 			}
 			options {
-				timeout(time: 5, unit: 'MINUTES')
+				timeout(time: 2, unit: 'HOURS')
 			}
 			tools {
 				// https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
 				jdk 'temurin-jdk11-latest'
 			}
 			steps {
-				buildGradle("temurin-jdk11-latest", "4.34", "clean assemble checkstyleMain")
+				buildGradle("Sanity check", "4.34", "clean assemble checkstyleMain")
 			}
 		}
 
 		stage('Basic Test Coverage') {
 			options {
-				timeout(time: 5, unit: 'MINUTES')
+				timeout(time: 2, unit: 'HOURS')
 			}
 			matrix {
 				axes {
@@ -91,7 +80,7 @@ pipeline {
 				stages {
 					stage ('Basic Test matrix build') {
 						steps {
-							buildGradle("${JDK_VERSION}", "${ECLIPSE_VERSION}", "clean eclipseTest")
+							buildGradle("Basic Test matrix build", "${ECLIPSE_VERSION}", "clean eclipseTest")
 						}
 					}
 				}
@@ -100,7 +89,7 @@ pipeline {
 
 		stage('Full Test Coverage') {
 			options {
-				timeout(time: 5, unit: 'MINUTES')
+				timeout(time: 2, unit: 'HOURS')
 			}
 			matrix {
 				axes {
@@ -128,10 +117,12 @@ pipeline {
 						axis { name 'PLATFORM'; values 'windows' }
 						axis { name 'ECLIPSE_VERSION'; notValues '4.8', '4.34' }
 					}
+					// Limit jdk17 to eclipse 4.25+
 					exclude {
 						axis { name 'JDK_VERSION'; values 'temurin-jdk17-latest' }
 						axis { name 'ECLIPSE_VERSION'; values '4.8', '4.9', '4.10', '4.11', '4.12', '4.13', '4.14', '4.15', '4.16', '4.17', '4.18', '4.19', '4.20', '4.21', '4.22', '4.23', '4.24' }
 					}
+					// Limit jdk11 to max eclipse 4.24
 					exclude {
 						axis { name 'JDK_VERSION'; values 'temurin-jdk11-latest' }
 						axis { name 'ECLIPSE_VERSION'; notValues '4.8', '4.9', '4.10', '4.11', '4.12', '4.13', '4.14', '4.15', '4.16', '4.17', '4.18', '4.19', '4.20', '4.21', '4.22', '4.23', '4.24' }
@@ -139,7 +130,7 @@ pipeline {
 				}
 
 				agent {
-					label '${PLATFORM}'
+					label "${PLATFORM}"
 				}
 				tools {
 					jdk "${JDK_VERSION}"
@@ -147,58 +138,69 @@ pipeline {
 				stages {
 					stage ('Full Test matrix build') {
 						steps {
-							buildGradle("${JDK_VERSION}", "${ECLIPSE_VERSION}", "clean build")
+							buildGradle("Full Test matrix build", "${ECLIPSE_VERSION}", "clean build")
 						}
 					}
 				}
 			}
 		}
 
-		//stage('Basic Test Coverage') {
-		//	agent none
-		//	options {
-		//		timeout(time: 5, unit: 'MINUTES')
-		//	}
-		//	steps {
-		//		script {
-		//			parallel parallelBasicStagesMap
-		//		}
-		//	}
-		//}
+		stage('Cross-Version Test Coverage') {
+			options {
+				timeout(time: 5, unit: 'MINUTES')
+			}
+			matrix {
+				axes {
+					axis {
+						name 'JDK_VERSION'
+						values 'temurin-jdk8-latest', 'openjdk-jdk11-latest', 'openjdk-jdk12-latest', 'openjdk-jdk13-latest', 'openjdk-jdk14-latest', 'openjdk-jdk15-latest', 'openjdk-jdk16-latest', 'openjdk-jdk17-latest'
+					}
+					axis {
+						name 'ECLIPSE_VERSION'
+						values '4.8', '4.23', '4.34'
+					}
+				}
+
+				excludes {
+					exclude {
+						axis { name 'ECLIPSE_VERSION'; values '4.8' }
+						axis { name 'JDK_VERSION'; notValues 'temurin-jdk8-latest' }
+					}
+					exclude {
+						axis { name 'ECLIPSE_VERSION'; values '4.23' }
+						axis { name 'JDK_VERSION'; values 'temurin-jdk8-latest'}
+					}
+					exclude {
+						axis { name 'ECLIPSE_VERSION'; values '4.34' }
+						axis { name 'JDK_VERSION'; notValues 'temurin-jdk17-latest' }
+					}
+				}
+
+				agent {
+					label "basic-ubuntu"
+				}
+				tools {
+					jdk "${JDK_VERSION}"
+				}
+				stages {
+					stage ('Cross-Version Test matrix build') {
+						steps {
+							buildGradle("Cross-Version Test matrix build", "${ECLIPSE_VERSION}", "clean eclipseTest")
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
-//def generateStage(templateName, cmd, config) {
-//    stage("$templateName on ${config.jdk}, Eclipse:${config.eclipseVersion}, OS:${config.platform}") {
-//        agent {
-//            label "${config.platform}"
-//        }
-//        tools {
-//            jdk "${config.jdk}"
-//        }
-//        steps {
-//            script {
-//                def eclipse = "$eclipseVersion".replace(".", "")
-//                sh 'java --version'
-//                withVault([vaultSecrets: secrets]) {
-//                    echo "./gradlew $cmd -Peclipse.version=$eclipse -Pbuild.invoker=CI --info --stacktrace"
-//                }
-//            }
-//        }
-//    }
-//
-//}
-
-def buildGradle(jdk, eclipseVersion, cmdline) {
+def buildGradle(name, eclipseVersion, cmdline) {
 	script {
-		echo "Running $cmdline with JDK: $jdk, Eclipse: $eclipseVersion"
+		echo "Running $name with cmd $cmdline on Eclipse $eclipseVersion"
 		def eclipse = "$eclipseVersion".replace(".", "")
-		withEnv(["JAVA_HOME=${ tool "$jdk" }",
-			"PATH=${ tool "$jdk" }/bin:$PATH"]) {
-			sh 'java --version'
-			withVault([vaultSecrets: secrets]) {
-				echo "./gradlew $cmdline -Peclipse.version=$eclipse -Pbuild.invoker=CI --info --stacktrace"
-			}
+		sh 'java --version'
+		withVault([vaultSecrets: secrets]) {
+			echo "./gradlew $cmdline -Peclipse.version=$eclipse -Pbuild.invoker=CI --info --stacktrace"
 		}
 	}
 }
