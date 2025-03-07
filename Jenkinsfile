@@ -192,7 +192,7 @@ pipeline {
 
 def buildGradle(jdk, eclipseVersion, cmdline) {
 	script {
-		echo "Running $cmdLine with JDK: $jdk, Eclipse: $eclipseVersion"
+		echo "Running $cmdline with JDK: $jdk, Eclipse: $eclipseVersion"
 		def eclipse = "$eclipseVersion".replace(".", "")
 		withEnv(["JAVA_HOME=${ tool "$jdk" }",
 			"PATH=${ tool "$jdk" }/bin:$PATH"]) {
