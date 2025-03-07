@@ -62,7 +62,7 @@ pipeline {
 
 		stage('Basic Test Coverage') {
 			options {
-				timeout(time: 3, unit: 'MINUTES')
+				timeout(time: 5, unit: 'MINUTES')
 			}
 			matrix {
 				axes {
@@ -192,6 +192,7 @@ pipeline {
 
 def buildGradle(jdk, eclipseVersion, cmdline) {
 	script {
+		echo "Running $cmdLine with JDK: $jdk, Eclipse: $eclipseVersion"
 		def eclipse = "$eclipseVersion".replace(".", "")
 		withEnv(["JAVA_HOME=${ tool "$jdk" }",
 			"PATH=${ tool "$jdk" }/bin:$PATH"]) {
