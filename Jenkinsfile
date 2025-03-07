@@ -72,7 +72,7 @@ pipeline {
 						values 'basic-ubuntu', 'windows'
 					}
 					axis {
-						name 'JDK'
+						name 'JDK_VERSION'
 						values 'temurin-jdk11-latest', 'temurin-jdk17-latest'
 					}
 					axis {
@@ -87,11 +87,11 @@ pipeline {
 						axis { name 'PLATFORM'; values 'windows' }
 					}
 					exclude {
-                        axis { name 'JDK'; values 'temurin-jdk17-latest' }
+                        axis { name 'JDK_VERSION'; values 'temurin-jdk17-latest' }
 						axis { name 'ECILPSE_VERSION'; values '4.8' }
                     }
 					exclude {
-						axis { name 'JDK'; values 'temurin-jdk11-latest' }
+						axis { name 'JDK_VERSION'; values 'temurin-jdk11-latest' }
 						axis { name 'ECILPSE_VERSION'; values '4.34' }
 					}
 				}
@@ -102,7 +102,7 @@ pipeline {
 				stages {
 					stage ('Basic Test matrix build') {
 						steps {
-							buildGradle("${JDK}", "${ECLIPSE_VERSION}", "clean eclipseTest")
+							buildGradle("${JDK_VERSION}", "${ECLIPSE_VERSION}", "clean eclipseTest")
 						}
 					}
 				}
