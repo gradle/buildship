@@ -93,11 +93,11 @@ pipeline {
 					}
 					exclude {
                         axis { name 'JDK_VERSION'; values 'temurin-jdk17-latest' }
-						axis { name 'ECILPSE_VERSION'; values '4.8' }
+						axis { name 'ECLIPSE_VERSION'; values '4.8' }
                     }
 					exclude {
 						axis { name 'JDK_VERSION'; values 'temurin-jdk11-latest' }
-						axis { name 'ECILPSE_VERSION'; values '4.34' }
+						axis { name 'ECLIPSE_VERSION'; values '4.34' }
 					}
 				}
 
