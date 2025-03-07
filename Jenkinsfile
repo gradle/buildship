@@ -7,18 +7,16 @@ secrets = [
 	]
 ]
 
-def basicConfigs = [
-	[jdk: 'jdk11', eclipseVersion: '4.8', platform: 'basic-ubuntu'],
-	[jdk: 'jdk11', eclipseVersion: '4.34', platform: 'basic-ubuntu'],
-	//[jdk: 'jdk11', eclipseVersion: '4.8', platform: 'basic-windows'],
-	//[jdk: 'jdk11', eclipseVersion: '4.34',platform: 'basic-windows'],
-]
-
-def parallelBasicStagesMap = basicConfigs.collectEntries {
-	["${it}": generateStage("Basic Test Coverage", "clean eclipseTest", it)]
-}
-
-
+//def basicConfigs = [
+//	[jdk: 'jdk11', eclipseVersion: '4.8', platform: 'basic-ubuntu'],
+//	[jdk: 'jdk11', eclipseVersion: '4.34', platform: 'basic-ubuntu'],
+//	//[jdk: 'jdk11', eclipseVersion: '4.8', platform: 'basic-windows'],
+//	//[jdk: 'jdk11', eclipseVersion: '4.34',platform: 'basic-windows'],
+//]
+//
+//def parallelBasicStagesMap = basicConfigs.collectEntries {
+//	["${it}": generateStage("Basic Test Coverage", "clean eclipseTest", it)]
+//}
 
 pipeline {
 	agent none
@@ -171,26 +169,26 @@ pipeline {
 	}
 }
 
-def generateStage(templateName, cmd, config) {
-    stage("$templateName on ${config.jdk}, Eclipse:${config.eclipseVersion}, OS:${config.platform}") {
-        agent {
-            label "${config.platform}"
-        }
-        tools {
-            jdk "${config.jdk}"
-        }
-        steps {
-            script {
-                def eclipse = "$eclipseVersion".replace(".", "")
-                sh 'java --version'
-                withVault([vaultSecrets: secrets]) {
-                    echo "./gradlew $cmd -Peclipse.version=$eclipse -Pbuild.invoker=CI --info --stacktrace"
-                }
-            }
-        }
-    }
-
-}
+//def generateStage(templateName, cmd, config) {
+//    stage("$templateName on ${config.jdk}, Eclipse:${config.eclipseVersion}, OS:${config.platform}") {
+//        agent {
+//            label "${config.platform}"
+//        }
+//        tools {
+//            jdk "${config.jdk}"
+//        }
+//        steps {
+//            script {
+//                def eclipse = "$eclipseVersion".replace(".", "")
+//                sh 'java --version'
+//                withVault([vaultSecrets: secrets]) {
+//                    echo "./gradlew $cmd -Peclipse.version=$eclipse -Pbuild.invoker=CI --info --stacktrace"
+//                }
+//            }
+//        }
+//    }
+//
+//}
 
 def buildGradle(jdk, eclipseVersion, cmdline) {
 	script {
