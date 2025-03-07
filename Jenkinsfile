@@ -32,7 +32,7 @@ pipeline {
 	tools {
 		// https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
 		jdk 'temurin-jdk11-latest'
-		jdk 'temurin-jdk17-latest'
+		//jdk 'temurin-jdk17-latest'
 	}
 
 	stages {
@@ -42,6 +42,11 @@ pipeline {
 			}
 			options {
 				timeout(time: 5, unit: 'MINUTES')
+			}
+			tools {
+				// https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
+				jdk 'temurin-jdk11-latest'
+				//jdk 'temurin-jdk17-latest'
 			}
 			steps {
 				buildGradle("temurin-jdk11-latest", "4.34", "clean assemble checkstyleMain")
@@ -98,6 +103,9 @@ pipeline {
 
 				agent {
 					label "${PLATFORM}"
+				}
+				tools {
+					jdk "${JDK_VERSION}"
 				}
 				stages {
 					stage ('Basic Test matrix build') {
