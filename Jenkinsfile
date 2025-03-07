@@ -29,12 +29,6 @@ pipeline {
 		githubPush()
 	}
 
-	tools {
-		// https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
-		jdk 'temurin-jdk11-latest'
-		//jdk 'temurin-jdk17-latest'
-	}
-
 	stages {
 		stage('Sanity check') {
 			agent {
@@ -46,24 +40,11 @@ pipeline {
 			tools {
 				// https://github.com/eclipse-cbi/jiro/wiki/Tools-(JDK,-Maven,-Ant)#jdk
 				jdk 'temurin-jdk11-latest'
-				//jdk 'temurin-jdk17-latest'
 			}
 			steps {
 				buildGradle("temurin-jdk11-latest", "4.34", "clean assemble checkstyleMain")
 			}
 		}
-
-		//stage('Basic Test Coverage') {
-		//	agent none
-		//	options {
-		//		timeout(time: 5, unit: 'MINUTES')
-		//	}
-		//	steps {
-		//		script {
-		//			parallel parallelBasicStagesMap
-		//		}
-		//	}
-		//}
 
 		stage('Basic Test Coverage') {
 			options {
@@ -117,11 +98,9 @@ pipeline {
 			}
 		}
 
-
-		/**
 		stage('Full Test Coverage') {
 			options {
-				timeout(time: 3, unit: 'MINUTES')
+				timeout(time: 5, unit: 'MINUTES')
 			}
 			matrix {
 				axes {
@@ -131,7 +110,7 @@ pipeline {
 						values 'basic-ubuntu', 'windows'
 					}
 					axis {
-						name 'JDK'
+						name 'JDK_VERSION'
 						values 'temurin-jdk11-latest', 'temurin-jdk17-latest'
 					}
 					axis {
@@ -140,40 +119,52 @@ pipeline {
 					}
 				}
 
-			   excludes {
-				   // TODO: Remove this exclude when windows agents become available
-				   exclude {
-					   axis {
-						   name 'PLATFORM'
-						   values 'windows'
-					   }
-				   }
-				   exclude {
-					   axis {
-						   name 'PLATFORM'
-						   // TODO: Change agent config when windows agents become available
-						   values 'windows'
-					   }
-					   axis {
-						   name 'ECILPSE_VERSION'
-						   notValues '4.8', '4.34'
-					   }
-				   }
-			   }
+				excludes {
+					// TODO: Remove this exclude when windows agents become available
+					exclude {
+						axis { name 'PLATFORM'; values 'windows' }
+					}
+					exclude {
+						axis { name 'PLATFORM'; values 'windows' }
+						axis { name 'ECLIPSE_VERSION'; notValues '4.8', '4.34' }
+					}
+					exclude {
+						axis { name 'JDK_VERSION'; values 'temurin-jdk17-latest' }
+						axis { name 'ECLIPSE_VERSION'; values '4.8', '4.9', '4.10', '4.11', '4.12', '4.13', '4.14', '4.15', '4.16', '4.17', '4.18', '4.19', '4.20', '4.21', '4.22', '4.23', '4.24' }
+					}
+					exclude {
+						axis { name 'JDK_VERSION'; values 'temurin-jdk11-latest' }
+						axis { name 'ECLIPSE_VERSION'; notValues '4.8', '4.9', '4.10', '4.11', '4.12', '4.13', '4.14', '4.15', '4.16', '4.17', '4.18', '4.19', '4.20', '4.21', '4.22', '4.23', '4.24' }
+					}
+				}
 
 				agent {
 					label '${PLATFORM}'
 				}
+				tools {
+					jdk "${JDK_VERSION}"
+				}
 				stages {
 					stage ('Full Test matrix build') {
 						steps {
-							buildGradle("${JDK}", "${ECLIPSE_VERSION}", "clean build")
+							buildGradle("${JDK_VERSION}", "${ECLIPSE_VERSION}", "clean build")
 						}
 					}
 				}
 			}
 		}
-		**/
+
+		//stage('Basic Test Coverage') {
+		//	agent none
+		//	options {
+		//		timeout(time: 5, unit: 'MINUTES')
+		//	}
+		//	steps {
+		//		script {
+		//			parallel parallelBasicStagesMap
+		//		}
+		//	}
+		//}
 	}
 }
 
