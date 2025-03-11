@@ -75,6 +75,15 @@ eclipseBuild {
     commitId = currentCommitId()
 }
 
+def develocityApi = project.extensions.findByName('develocity')
+if (develocityApi) {
+    def eclipseVersion = Config.on(project).getTargetPlatform().getEclipseVersion()
+    develocityApi.getBuildScan().tag("eclipse_${eclipseVersion}")
+    if (project.hasProperty('eclipse.test.java.version')) {
+        develocityApi.getBuildScan().tag("eclipseTestJdk_${project.getProperty('eclipse.test.java.version')}")
+    }
+}
+
 // read the current version from an external file and add a timestamp suffix if requested by the caller
 ext.baseVersion = file('version.txt').text.trim()
 ext.versionQualifier = getVersionQualifier()
