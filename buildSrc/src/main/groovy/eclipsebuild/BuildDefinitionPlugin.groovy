@@ -268,7 +268,7 @@ class BuildDefinitionPlugin implements Plugin<Project> {
 
                 if (!digestFile.exists()) {
                     project.logger.info("No digest file found in '${config.nonMavenizedTargetPlatformDir}'; reassemble the target platform.")
-                    return false
+                    return true
                 } else {
                     boolean digestMatch = digestFile.text == hash
                     if (!digestMatch) {
