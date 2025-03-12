@@ -263,21 +263,34 @@ class BuildDefinitionPlugin implements Plugin<Project> {
             doLast { assembleTargetPlatform(project, config) }
 
             onlyIf {
-                HashFunction sha512HashFunction = Hashing.sha512()
-                String manifests = project.rootProject.allprojects
-                        .findAll { p -> p.plugins.hasPlugin(ExistingJarBundlePlugin) }
-                        .toSorted { p1, p2 -> p1.name <=> p2.name }
-                        .collect { p -> p.file("META-INF/MANIFEST.MF").exists() ? p.file("META-INF/MANIFEST.MF").text : null }
-                        .findAll { it != null }
-                        .join("\n")
-                String targetDef = config.targetPlatform.targetDefinition.text
-                String hashInput = manifests + "\n" + targetDef
-                String hash = sha512HashFunction.hashString(hashInput, StandardCharsets.UTF_8)
+                String hash = targetPlatformHash(project, config)
                 File digestFile = new File(config.nonMavenizedTargetPlatformDir, 'digest')
-                boolean digestMatch = digestFile.exists() ? digestFile.text == hash : false
-                !digestMatch
+
+                if (!digestFile.exists()) {
+                    project.logger.info("No digest file found in '${config.nonMavenizedTargetPlatformDir}'; reassemble the target platform.")
+                    return false
+                } else {
+                    boolean digestMatch = digestFile.text == hash
+                    if (!digestMatch) {
+                        project.logger.info("Target definition file or the manifest file of an existing jur bundle plugin has changed; reassemble the target platform.")
+                    }
+                    return !digestMatch
+                }
             }
         }
+    }
+
+    static String targetPlatformHash(Project project, Config config) {
+        HashFunction sha512HashFunction = Hashing.sha512()
+        String manifests = project.rootProject.allprojects
+                .findAll { p -> p.plugins.hasPlugin(ExistingJarBundlePlugin) }
+                .toSorted { p1, p2 -> p1.name <=> p2.name }
+                .collect { p -> p.file("META-INF/MANIFEST.MF").exists() ? p.file("META-INF/MANIFEST.MF").text : null }
+                .findAll { it != null }
+                .join("\n")
+        String targetDef = config.targetPlatform.targetDefinition.text
+        String hashInput = manifests + "\n" + targetDef
+        return sha512HashFunction.hashString(hashInput, StandardCharsets.UTF_8)
     }
 
     static void addTaskAddExistingJarsToTargetPlatform(Project project, Config config) {
@@ -372,9 +385,8 @@ class BuildDefinitionPlugin implements Plugin<Project> {
 
         executeP2Director(project, config, updateSites.join(','), features.join(','))
 
-        HashFunction sha512HashFunction = Hashing.sha512()
-        String hash = sha512HashFunction.hashString(config.targetPlatform.targetDefinition.text, StandardCharsets.UTF_8)
-        new File(config.nonMavenizedTargetPlatformDir, 'digest').text = hash
+        config.nonMavenizedTargetPlatformDir.mkdirs()
+        new File(config.nonMavenizedTargetPlatformDir, 'digest').text = targetPlatformHash(project, config)
     }
 
     private static void executeP2Director(Project project, Config config, String repositoryUrl, String installIU) {
