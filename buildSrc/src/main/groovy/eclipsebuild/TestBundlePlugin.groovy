@@ -18,7 +18,8 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.testing.Test
+import org.gradle.api.logging.LogLevel
+import org.gradle.process.ExecOperations
 
 import javax.inject.Inject
 
@@ -60,6 +61,11 @@ class TestBundlePlugin implements Plugin<Project> {
     static final TASK_NAME_CROSS_VERSION_ECLIPSE_TEST = 'crossVersionEclipseTest'
 
     public final FileResolver fileResolver
+
+    interface InjectedExecOps {
+        @Inject
+        ExecOperations getExecOps()
+    }
 
     @Inject
     public TestBundlePlugin(FileResolver fileResolver) {
@@ -142,14 +148,19 @@ class TestBundlePlugin implements Plugin<Project> {
 //                }
 //            }
 
-            doFirst { beforeEclipseTest(project, config, testDistributionDir, additionalPluginsDir) }
+            getTestEclipseDirectory().convention(project.layout.buildDirectory.dir('eclipseTest/eclipse'))
+
+            doFirst {
+                def injectedExecOps = project.objects.newInstance(InjectedExecOps)
+                beforeEclipseTest(project, config, testDistributionDir, additionalPluginsDir, injectedExecOps)
+            }
         }
 
         task.dependsOn 'test'
         task.dependsOn 'jar'
     }
 
-    static void beforeEclipseTest(Project project, Config config, File testDistributionDir, File additionalPluginsDir) {
+    static void beforeEclipseTest(Project project, Config config, File testDistributionDir, File additionalPluginsDir, InjectedExecOps injectedExecOps) {
         // before testing, create a fresh eclipse IDE with all dependent plugins installed
         // first delete the test eclipse distribution and the original plugins.
         project.logger.info("Delete '${testDistributionDir.absolutePath}'")
@@ -164,11 +175,12 @@ class TestBundlePlugin implements Plugin<Project> {
 
         // publish the dependencies' output jars into a P2 repository in the additions folder
         project.logger.info("Create mini-update site from the test plug-in and its dependencies at '${additionalPluginsDir.absolutePath}'")
-        publishDependenciesIntoTemporaryRepo(project, config, additionalPluginsDir)
+        publishDependenciesIntoTemporaryRepo(project, config, additionalPluginsDir, injectedExecOps)
 
         // install all elements from the P2 repository into the test Eclipse distribution
         project.logger.info("Install the test plug-in and its dependencies from '${additionalPluginsDir.absolutePath}' into '${testDistributionDir.absolutePath}'")
-        installDepedenciesIntoTargetPlatform(project, config, additionalPluginsDir, testDistributionDir)
+
+        installDepedenciesIntoTargetPlatform(project, config, additionalPluginsDir, testDistributionDir, injectedExecOps)
     }
 
 
@@ -203,13 +215,15 @@ class TestBundlePlugin implements Plugin<Project> {
         }
     }
 
-    static void publishDependenciesIntoTemporaryRepo(Project project, Config config, File additionalPluginsDir) {
+    static void publishDependenciesIntoTemporaryRepo(Project project, Config config, File additionalPluginsDir, InjectedExecOps injectedExecOps) {
         // take all direct dependencies and and publish their jar archive to the build folder
         // (eclipsetest/additions subfolder) as a mini P2 update site
         for (Project p : compileClasspathProjectDependencies(project)) {
             project.logger.debug("Publish '${p.tasks.jar.outputs.files.singleFile.absolutePath}' to '${additionalPluginsDir.path}/${p.name}'")
-            project.exec {
-                commandLine(config.eclipseSdkExe,
+            injectedExecOps.execOps.exec {
+                it.standardOutput = new LogOutputStream(project.getLogger(), LogLevel.INFO, LogOutputStream.Type.STDOUT)
+                it.errorOutput = new LogOutputStream(project.getLogger(), LogLevel.INFO, LogOutputStream.Type.STDERR)
+                it.commandLine(config.eclipseSdkExe,
                         "-application", "org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher",
                         "-metadataRepository", "file:${additionalPluginsDir.path}/${p.name}",
                         "-artifactRepository", "file:${additionalPluginsDir.path}/${p.name}",
@@ -222,8 +236,10 @@ class TestBundlePlugin implements Plugin<Project> {
 
         // and do the same with the current plugin
         project.logger.debug("Publish '${project.jar.outputs.files.singleFile.absolutePath}' to '${additionalPluginsDir.path}/${project.name}'")
-        project.exec {
-            commandLine(config.eclipseSdkExe,
+        injectedExecOps.execOps.exec {
+            it.standardOutput = new LogOutputStream(project.logger, LogLevel.INFO, LogOutputStream.Type.STDOUT)
+            it.errorOutput = new LogOutputStream(project.logger, LogLevel.INFO, LogOutputStream.Type.STDERR)
+            it.commandLine(config.eclipseSdkExe,
                     "-application", "org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher",
                     "-metadataRepository", "file:${additionalPluginsDir.path}/${project.name}",
                     "-artifactRepository", "file:${additionalPluginsDir.path}/${project.name}",
@@ -234,12 +250,14 @@ class TestBundlePlugin implements Plugin<Project> {
         }
     }
 
-    static void installDepedenciesIntoTargetPlatform(Project project, Config config, File additionalPluginsDir, File testDistributionDir) {
+    static void installDepedenciesIntoTargetPlatform(Project project, Config config, File additionalPluginsDir, File testDistributionDir, InjectedExecOps injectedExecOps) {
         // take the mini P2 update sites from the build folder and install it into the test Eclipse distribution
         for (Project p : compileClasspathProjectDependencies(project)) {
             project.logger.info("Install '${additionalPluginsDir.path}/${p.name}' into '${testDistributionDir.absolutePath}'")
-            project.exec {
-                commandLine(config.eclipseSdkExe,
+            injectedExecOps.execOps.exec {
+                it.standardOutput = new LogOutputStream(project.logger, LogLevel.INFO, LogOutputStream.Type.STDOUT)
+                it.errorOutput = new LogOutputStream(project.logger, LogLevel.INFO, LogOutputStream.Type.STDERR)
+                it.commandLine(config.eclipseSdkExe,
                         '-application', 'org.eclipse.equinox.p2.director',
                         '-repository', "file:${additionalPluginsDir.path}/${p.name}",
                         '-installIU', p.name,
@@ -256,8 +274,10 @@ class TestBundlePlugin implements Plugin<Project> {
 
         // do the same with the current project
         project.logger.info("Install '${additionalPluginsDir.path}/${project.name}' into '${testDistributionDir.absolutePath}'")
-        project.exec {
-            commandLine(config.eclipseSdkExe,
+        injectedExecOps.execOps.exec {
+            it.standardOutput = new LogOutputStream(project.logger, LogLevel.INFO, LogOutputStream.Type.STDOUT)
+            it.errorOutput = new LogOutputStream(project.logger, LogLevel.INFO, LogOutputStream.Type.STDERR)
+            it.commandLine(config.eclipseSdkExe,
                     '-application', 'org.eclipse.equinox.p2.director',
                     '-repository', "file:${additionalPluginsDir.path}/${project.name}",
                     '-installIU', project.name,

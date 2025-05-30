@@ -85,47 +85,6 @@ version = baseVersion + '.' + versionQualifier
 // ensure that the assembleTargetPlatform is executed when the gradle.properties file is changed
 project.assembleTargetPlatform.inputs.file file('gradle.properties')
 
-// delete the org.eclipse.core.runtime.compatibility.registry plugin from the target platform
-// it causes classpath issues when the the Spock tests are running with Groovy 2.4; only
-// contains files to provide 2.x compatibility hence it's safe to remove
-project.assembleTargetPlatform.doLast {
-    def config = Config.on(project)
-    if (config.targetPlatform.eclipseVersion in ['43', '44', '45']) {
-        def registryPluginId = 'org.eclipse.core.runtime.compatibility.registry'
-
-        project.exec {
-            // redirect the external process output to the logging
-            standardOutput = new LogOutputStream(project.logger, LogLevel.INFO)
-            errorOutput = new LogOutputStream(project.logger, LogLevel.INFO)
-
-            commandLine(config.eclipseSdkExe.path,
-                    '-application', 'org.eclipse.equinox.p2.director',
-                    '-uninstallIU', registryPluginId,
-                    '-tag', 'target-platform-2',
-                    '-destination', config.nonMavenizedTargetPlatformDir.path,
-                    '-profile', 'SDKProfile',
-                    '-bundlepool', config.nonMavenizedTargetPlatformDir.path,
-                    '-p2.os', Constants.os,
-                    '-p2.ws', Constants.ws,
-                    '-p2.arch', Constants.arch,
-                    '-roaming',
-                    '-nosplash')
-        }
-
-        def bundlesInfo = new File(config.nonMavenizedTargetPlatformDir, 'configuration/org.eclipse.equinox.simpleconfigurator/bundles.info')
-        def updatedInfo = ''
-        bundlesInfo.withReader { reader ->
-            def line
-            while (line = reader.readLine()) {
-                if (!line.contains(registryPluginId)) {
-                    updatedInfo += line + '\n'
-                }
-            }
-        }
-        bundlesInfo.text = updatedInfo
-    }
-}
-
 subprojects {
     // set the calculated version on all projects in the hierarchy
     version = rootProject.version
@@ -170,6 +129,7 @@ subprojects {
             }
             bundled "cglib:cglib-nodep:$cglibLibVersion"
             bundled "org.slf4j:slf4j-simple:$slf4jLibVersion"
+            compileOnly("com.google.errorprone:error_prone_annotations:2.25.0") // Groovy would warn about unknown annotations in Guava classes without this dependency
         }
         if (project.hasProperty('eclipse.test.java.version')) {
             tasks.withType(EclipseTestTask) {
@@ -189,6 +149,9 @@ subprojects {
         configFile = "$checkstyleConfigDir/checkstyle.xml" as File
         configProperties = ['checkstyleConfigDir': checkstyleConfigDir]
         inputs.file "$checkstyleConfigDir/suppressions.xml" as File
+        reports {
+            html.stylesheet = project.rootProject.resources.text.fromFile('gradle/config/checkstyle/stylesheet.xsl')
+        }
     }
 
     tasks.withType(EclipseTestTask).all {
@@ -207,24 +170,24 @@ subprojects {
     repositories {
         maven {
             name = 'mavenized-target-platform'
-            url "${eclipsebuild.Config.on(project).mavenizedTargetPlatformDir}"
+            url = "${eclipsebuild.Config.on(project).mavenizedTargetPlatformDir}"
         }
 
         mavenCentral()
 
         maven {
             name = 'gradle-snapshots'
-            url gradleSnapshotsRepositoryUrl
+            url = gradleSnapshotsRepositoryUrl
         }
 
         maven {
             name = 'gradle-releases'
-            url gradleReleasesRepositoryUrl
+            url = gradleReleasesRepositoryUrl
         }
 
         maven {
             name = 'gradle-remote'
-            url gradleRemoteRepositoryUrl
+            url = gradleRemoteRepositoryUrl
         }
     }
 }
@@ -339,12 +302,9 @@ String getBundleVersion(String version) {
 }
 
 def currentCommitId() {
-    def result = new ByteArrayOutputStream()
-    exec {
-        standardOutput = result
+    def gitVersion = providers.exec {
         commandLine('git', 'rev-parse', '--verify', 'HEAD')
-    }
-    return result.toString().trim()
+    }.standardOutput.asText.get().trim()
 }
 
 def readVersionMapping(File propertiesFile, String swtPluginId) {
