@@ -9,7 +9,7 @@ on:
     - cron: "0 2 * * *"
 
 env:
-  ECLIPSE_LATEST: "437"
+  ECLIPSE_LATEST: "436"
 
 jobs:
   sanity-check:
