@@ -13,8 +13,13 @@ enum class Jdk(val majorVersion: String, val vendor: String, val availableOn: En
     OPEN_JDK_15("15", "openjdk"),
     OPEN_JDK_16("16", "openjdk"),
     OPEN_JDK_17("17", "openjdk"),
-    OPEN_JDK_18("18", "openjdk");
-    // TODO add java 19-ea
+    OPEN_JDK_18("18", "openjdk"),
+    OPEN_JDK_19("19", "openjdk"),
+    OPEN_JDK_20("20", "openjdk"),
+    OPEN_JDK_21("21", "openjdk"),
+    OPEN_JDK_22("22", "openjdk"),
+    OPEN_JDK_23("23", "openjdk"),
+    OPEN_JDK_24("24", "openjdk");
 
     fun getJavaHomePath(os: OS) = if (availableOn.contains(os)) "%${os.name.toLowerCase()}.java${majorVersion}.${vendor}.64bit%" else throw RuntimeException("$name not available on ${os.name}")
 

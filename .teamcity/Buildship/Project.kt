@@ -10,10 +10,15 @@ val individualBuildsForPhase1 = listOf(
     IndividualScenarioBuildType(ScenarioType.SANITY_CHECK, OS.LINUX, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.ORACLE_JDK_8)
 )
 val individualBuildsForPhase2 = listOf(
+    // Last Eclipse version supporting Java 8
     IndividualScenarioBuildType(ScenarioType.BASIC_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_8, eclipseRuntimeJdk = Jdk.ORACLE_JDK_8),
-    IndividualScenarioBuildType(ScenarioType.BASIC_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
     IndividualScenarioBuildType(ScenarioType.BASIC_COVERAGE, OS.WINDOWS, EclipseVersion.ECLIPSE4_8, eclipseRuntimeJdk = Jdk.ORACLE_JDK_8),
-    IndividualScenarioBuildType(ScenarioType.BASIC_COVERAGE, OS.WINDOWS, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_17)
+    // Last Eclipse version supporting Java 17
+    IndividualScenarioBuildType(ScenarioType.BASIC_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_34, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
+    IndividualScenarioBuildType(ScenarioType.BASIC_COVERAGE, OS.WINDOWS, EclipseVersion.ECLIPSE4_34, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
+    // Latest Eclipse version, currently supporting Java 21
+    IndividualScenarioBuildType(ScenarioType.BASIC_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_21),
+    IndividualScenarioBuildType(ScenarioType.BASIC_COVERAGE, OS.WINDOWS, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_21)
 )
 val individualBuildsForPhase3 = listOf(
     IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_8, eclipseRuntimeJdk = Jdk.ORACLE_JDK_8),
@@ -43,11 +48,12 @@ val individualBuildsForPhase3 = listOf(
     IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_32, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
     IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_33, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
     IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_34, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
-    IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_35, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
-    IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
+    IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_35, eclipseRuntimeJdk = Jdk.OPEN_JDK_21),
+    IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.LINUX, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_21),
 
     IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.WINDOWS, EclipseVersion.ECLIPSE4_8, eclipseRuntimeJdk = Jdk.ORACLE_JDK_8),
-    IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.WINDOWS, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_17)
+    IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.WINDOWS, EclipseVersion.ECLIPSE4_34, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
+    IndividualScenarioBuildType(ScenarioType.FULL_COVERAGE, OS.WINDOWS, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_21)
 )
 val individualBuildsForPhase4 = listOf(
     IndividualScenarioBuildType(ScenarioType.CROSS_VERSION, OS.LINUX, EclipseVersion.ECLIPSE4_8, eclipseRuntimeJdk = Jdk.ORACLE_JDK_8),
@@ -62,7 +68,7 @@ val individualBuildsForPhase4 = listOf(
     IndividualScenarioBuildType(ScenarioType.CROSS_VERSION, OS.LINUX, EclipseVersion.ECLIPSE4_23, eclipseRuntimeJdk = Jdk.OPEN_JDK_16),
     IndividualScenarioBuildType(ScenarioType.CROSS_VERSION, OS.LINUX, EclipseVersion.ECLIPSE4_23, eclipseRuntimeJdk = Jdk.OPEN_JDK_17),
     // TODO JDK 18 is only supported in Eclipse 4.24
-    IndividualScenarioBuildType(ScenarioType.CROSS_VERSION, OS.LINUX, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_17)
+    IndividualScenarioBuildType(ScenarioType.CROSS_VERSION, OS.LINUX, EclipseVersion.ECLIPSE4_34, eclipseRuntimeJdk = Jdk.OPEN_JDK_17)
 )
 
 val eclipseFtpBuildParameters =
