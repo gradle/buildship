@@ -4,23 +4,12 @@
                         
         
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-                                    
-            
             <unit id="org.eclipse.m2e.feature.feature.group" version="2.8.0.20250224-0720"/>
-                                    
-            
-            <unit id="org.eclipse.oomph.setup.feature.group" version="1.35.0.v20250305-1050"/>
-                                    
-            
+            <unit id="org.eclipse.oomph.setup.feature.group" version="1.33.0.v20250302-1233"/>
             <unit id="org.eclipse.sdk.ide" version="4.35.0.I20250228-0140"/>
-                                    
-            
             <repository location="https://download.eclipse.org/releases/2025-03"/>
-                                
-        
         </location>
-                        
-        
+
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <unit id="com.google.guava" version="33.3.1.jre"/>
             <unit id="com.google.gson" version="2.11.0"/>
