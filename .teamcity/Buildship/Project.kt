@@ -7,7 +7,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.*
 import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 
 val individualBuildsForPhase1 = listOf(
-    IndividualScenarioBuildType(ScenarioType.SANITY_CHECK, OS.LINUX, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.ORACLE_JDK_8)
+    IndividualScenarioBuildType(ScenarioType.SANITY_CHECK, OS.LINUX, EclipseVersion.ECLIPSE4_36, eclipseRuntimeJdk = Jdk.OPEN_JDK_21)
 )
 val individualBuildsForPhase2 = listOf(
     // Last Eclipse version supporting Java 8
