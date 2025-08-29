@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <target name="Buildship Eclipse 2025-06 Target Platform" sequenceNumber="1">
-            
-    
     <locations>
-                        
-        
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <unit id="org.eclipse.m2e.feature.feature.group" version="2.9.0.20250514-0352"/>
-            <unit id="org.eclipse.oomph.setup.feature.group" version="1.33.0.v20250411-1221"/>
-            <unit id="org.eclipse.sdk.ide" version="4.35.0.I20250228-0140"/>
+            <unit id="org.eclipse.oomph.setup.feature.group" version="1.36.0.v20250521-1019"/>
+            <unit id="org.eclipse.sdk.ide" version="4.36.0.I20250528-1830"/>
             <repository location="https://download.eclipse.org/releases/2025-06"/>
         </location>
 
