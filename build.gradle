@@ -45,6 +45,9 @@ def targetPlatformIds = [
         '432',
         '433',
         '434',
+        '435',
+        '436',
+        '437',
 ]
 
 // target platform definition for all major Eclipse releases between version 4.3 and 4.8
