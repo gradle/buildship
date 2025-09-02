@@ -6,6 +6,6 @@ dependencies {
 
 gradle.projectsLoaded {
     if (JavaVersion.current() < JavaVersion.VERSION_17) {
-        throw new GradleException("This build requires Java 17+.")
+        throw new GradleException("This build requires Java 17 or above.")
     }
 }
