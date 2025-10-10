@@ -161,9 +161,8 @@ class IndividualScenarioBuildType(type: ScenarioType, os: OS, eclipseVersion: Ec
                     "-Dscan " +
                     gradleCacheConnectionParameters +
                     "${Jdk.javaInstallationPathsProperty(os)}"
-            jvmArgs = "-XX:MaxPermSize=256m"
             param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
-            jdkHome
+            jdkHome = Jdk.OPEN_JDK_17.getJavaHomePath(os)
         }
     }
 
@@ -248,6 +247,7 @@ class PromotionBuildType(promotionName: String, typeName: String, dependency: Bu
                         "--stacktrace " +
                         gradleCacheConnectionParameters +
                         "${Jdk.javaInstallationPathsProperty(OS.LINUX)}"
+                jdkHome = Jdk.OPEN_JDK_17.getJavaHomePath(OS.LINUX)
             }
         }
     }
@@ -301,6 +301,7 @@ class TagBuildType() : BuildType({
                     "--stacktrace " +
                     gradleCacheConnectionParameters +
                     "${Jdk.javaInstallationPathsProperty(OS.LINUX)}"
+            jdkHome = Jdk.OPEN_JDK_17.getJavaHomePath(OS.LINUX)
         }
     }
 })
@@ -370,6 +371,7 @@ class SinglePromotionBuildType(promotionName: String, typeName: String, eclipseV
                     gradleCacheConnectionParameters +
                     "${Jdk.javaInstallationPathsProperty(OS.LINUX)}"
             param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
+            jdkHome = Jdk.OPEN_JDK_17.getJavaHomePath(OS.LINUX)
         }
     }
 })
