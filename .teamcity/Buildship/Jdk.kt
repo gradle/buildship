@@ -3,7 +3,7 @@ package Buildship
 import java.util.EnumSet
 
 enum class Jdk(val majorVersion: String, val vendor: String, val availableOn: EnumSet<OS> = EnumSet.allOf(OS::class.java)) {
-    ORACLE_JDK_8("8", "oracle"),
+    OPEN_JDK_8("8", "openjdk"),
     ORACLE_JDK_9("9", "oracle", EnumSet.of(OS.LINUX)),
     OPEN_JDK_10("10", "oracle", EnumSet.of(OS.LINUX)),
     OPEN_JDK_11("11", "openjdk"),
