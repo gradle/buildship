@@ -184,7 +184,10 @@ class IndividualScenarioBuildType(type: ScenarioType, os: OS, eclipseVersion: Ec
 
     requirements {
         contains("teamcity.agent.jvm.os.name", os.name.toLowerCase().capitalize())
-        doesNotMatch("teamcity.agent.name", "ec2-.*")
+        // Only the static agent pools provide the JDK 8 that the .compat bundle is compiled with.
+        // The ec2 fleet agents don't, and excluding them by name did not work: the requirement is
+        // evaluated against the cloud image, which is not called 'ec2-*' yet.
+        contains("teamcity.agent.name", if (os == OS.WINDOWS) "windows" else "dev")
     }
 })
 
