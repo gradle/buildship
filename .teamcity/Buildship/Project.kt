@@ -137,7 +137,6 @@ class IndividualScenarioBuildType(type: ScenarioType, os: OS, eclipseVersion: Ec
         param("env.JAVA_HOME", Jdk.OPEN_JDK_11.getJavaHomePath(os))
         param("gradle.tasks", type.gradleTasks)
         param("repository.mirrors", allMirrors())
-        param("env.DEVELOCITY_ACCESS_KEY", "%develocity-staging.eclipse.org.access.key%")
     }
 
     triggers {
@@ -206,7 +205,7 @@ class PromotionBuildType(promotionName: String, typeName: String, dependency: Bu
         param("build.invoker", "ci")
         param("env.JAVA_HOME", Jdk.OPEN_JDK_11.getJavaHomePath(OS.LINUX))
         param("repository.mirrors", allMirrors())
-        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        param("env.DEVELOCITY_ACCESS_KEY", "%ge.gradle.org.access.key%")
     }
 
     // The artifact upload requires uses ssh which requires manual confirmation. to work around that, we use the same
@@ -270,7 +269,6 @@ class TagBuildType() : BuildType({
         param("build.invoker", "ci")
         param("env.JAVA_HOME", Jdk.OPEN_JDK_11.getJavaHomePath(OS.LINUX))
         param("repository.mirrors", allMirrors())
-        param("env.DEVELOCITY_ACCESS_KEY", "%develocity-staging.eclipse.org.access.key%")
     }
 
     requirements {
@@ -332,7 +330,7 @@ class SinglePromotionBuildType(promotionName: String, typeName: String, eclipseV
         param("build.invoker", "ci")
         param("env.JAVA_HOME", Jdk.OPEN_JDK_11.getJavaHomePath(OS.LINUX))
         param("repository.mirrors", allMirrors())
-        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        param("env.DEVELOCITY_ACCESS_KEY", "%ge.gradle.org.access.key%")
     }
 
     // The artifact upload requires uses ssh which requires manual confirmation. to work around that, we use the same
@@ -427,7 +425,7 @@ object Project : Project({
         password("eclipse.downloadServer.username", "credentialsJSON:23f3947f-45b2-46b8-83f6-9341c9b914f6", label = "Username", display = ParameterDisplay.HIDDEN)
         // Do not allow UI changes in the TeamCity configuration
         param("teamcity.ui.settings.readOnly", "true")
-        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        param("env.DEVELOCITY_ACCESS_KEY", "%ge.gradle.org.access.key%")
     }
 
     cleanup {
