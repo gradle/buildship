@@ -83,11 +83,6 @@ val eclipseFtpBuildParameters =
         "-PECLIPSE_ORG_TEMP_PATH=tmp " +
         "-PECLIPSE_ORG_MIRROR_PATH=/buildship/updates "
 
-val gradleCacheConnectionParameters =
-        "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\" " +
-        "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\" " +
-        "\"-Dgradle.cache.remote.password=%gradle.cache.remote.password%\" "
-
 val tb1_1 = CheckpointBuildType("Sanity Check (Phase 1/1)", individualBuildsForPhase1, null)
 val tb1_2 = CheckpointBuildType("Basic Test Coverage (Phase 1/2)", individualBuildsForPhase1, null)
 val tb2_2 = CheckpointBuildType("Basic Test Coverage (Phase 2/2)", individualBuildsForPhase2, tb1_2)
@@ -162,7 +157,6 @@ class IndividualScenarioBuildType(type: ScenarioType, os: OS, eclipseVersion: Ec
                     "--stacktrace " +
                     "-Declipse.p2.mirror=false " +
                     "-Dscan " +
-                    gradleCacheConnectionParameters +
                     "${Jdk.javaInstallationPathsProperty(os)}"
             param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
             jdkHome = Jdk.OPEN_JDK_17.getJavaHomePath(os)
@@ -248,7 +242,6 @@ class PromotionBuildType(promotionName: String, typeName: String, dependency: Bu
                         eclipseFtpBuildParameters +
                         "-PgithubAccessKey=%github.token% " +
                         "--stacktrace " +
-                        gradleCacheConnectionParameters +
                         "${Jdk.javaInstallationPathsProperty(OS.LINUX)}"
                 jdkHome = Jdk.OPEN_JDK_17.getJavaHomePath(OS.LINUX)
             }
@@ -301,7 +294,6 @@ class TagBuildType() : BuildType({
                     eclipseFtpBuildParameters +
                     "-PgithubAccessKey=%github.token% " +
                     "--stacktrace " +
-                    gradleCacheConnectionParameters +
                     "${Jdk.javaInstallationPathsProperty(OS.LINUX)}"
             jdkHome = Jdk.OPEN_JDK_17.getJavaHomePath(OS.LINUX)
         }
@@ -370,7 +362,6 @@ class SinglePromotionBuildType(promotionName: String, typeName: String, eclipseV
                     "-Prelease.type=%eclipse.release.type% " +
                     eclipseFtpBuildParameters +
                     "--stacktrace -Declipse.p2.mirror=false " +
-                    gradleCacheConnectionParameters +
                     "${Jdk.javaInstallationPathsProperty(OS.LINUX)}"
             param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
             jdkHome = Jdk.OPEN_JDK_17.getJavaHomePath(OS.LINUX)
