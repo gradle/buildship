@@ -2,6 +2,8 @@ package Buildship
 
 import jetbrains.buildServer.configs.kotlin.v2019_2.*
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.XmlReport
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.*
 import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
@@ -138,6 +140,18 @@ class IndividualScenarioBuildType(type: ScenarioType, os: OS, eclipseVersion: Ec
         retryBuild {
             delaySeconds = 0
             attempts = 2
+        }
+    }
+
+    if (type.runsTests) {
+        features {
+            xmlReport {
+                reportType = XmlReport.XmlReportType.JUNIT
+                rules = """
+                    +:**/build/test-results/eclipseTest/*.xml
+                    +:**/build/test-results/crossVersionEclipseTest/*.xml
+                """.trimIndent()
+            }
         }
     }
 
