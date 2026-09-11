@@ -5,6 +5,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.XmlReport
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.*
 import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 
@@ -97,6 +98,10 @@ val tb4_3 = CheckpointBuildType("Cross-Version Test Coverage (Phase 3/4)", indiv
 val tb4_4 = CheckpointBuildType("Cross-Version Test Coverage (Phase 4/4)", individualBuildsForPhase4, tb4_3)
 
 val eclipseVersions = EclipseVersion.values().reversed()
+
+val determineVersion = VersionBuildType()
+val buildTimestampParameter = "-PbuildTimestamp=%dep.${determineVersion.id!!.value}.build.number%"
+
 val individualSnapshotPromotions = eclipseVersions.map { SinglePromotionBuildType("Snapshot Eclipse ${it.codeName}", "snapshot", it, tb4_4) }
 
 val tagAndIncrementVersion = TagBuildType()
@@ -314,6 +319,30 @@ class TagBuildType() : BuildType({
     }
 })
 
+class VersionBuildType() : BuildType({
+    createId("Promotion", "Determine version")
+    description = "Determines the instant that all promotion builds of one chain derive their version from"
+    addCredentialsLeakFailureCondition()
+
+    vcs {
+        root(GitHubVcsRoot)
+        checkoutMode = CheckoutMode.MANUAL
+    }
+
+    requirements {
+        contains("teamcity.agent.jvm.os.name", "Linux")
+    }
+
+    steps {
+        script {
+            name = "Determine the build instant of this promotion chain"
+            scriptContent = "TIMESTAMP=\$(date +%%s)\n" +
+                    "echo \"Promoting with build instant \$TIMESTAMP (\$(date -u -d @\$TIMESTAMP))\"\n" +
+                    "echo \"##teamcity[buildNumber '\$TIMESTAMP']\""
+        }
+    }
+})
+
 class SinglePromotionBuildType(promotionName: String, typeName: String, eclipseVersion: EclipseVersion, dependency: BuildType, trigger: Trigger = Trigger.NONE) : BuildType({
     createId("Promotion", promotionName.capitalize())
     artifactRules = "org.eclipse.buildship.site/build/repository/** => .teamcity/update-site"
@@ -361,6 +390,7 @@ class SinglePromotionBuildType(promotionName: String, typeName: String, eclipseV
 
     dependencies {
         snapshot(dependency, DefaultFailureCondition)
+        snapshot(determineVersion, DefaultFailureCondition)
     }
 
     steps {
@@ -374,6 +404,7 @@ class SinglePromotionBuildType(promotionName: String, typeName: String, eclipseV
                     "-Peclipse.version=${eclipseVersion.updateSiteVersion} " +
                     "-Pbuild.invoker=%build.invoker% " +
                     "-Prelease.type=%eclipse.release.type% " +
+                    buildTimestampParameter + " " +
                     eclipseFtpBuildParameters +
                     "--stacktrace -Declipse.p2.mirror=false " +
                     "${Jdk.javaInstallationPathsProperty(OS.LINUX)}"
@@ -462,7 +493,8 @@ object Promotions : Project({
         snapshotPromotion,
         milestonePromotion,
         releasePromotion,
-        tagAndIncrementVersion) +
+        tagAndIncrementVersion,
+        determineVersion) +
             individualSnapshotPromotions +
             individualReleasePromotions +
             individualSnapshotSanityPromotions +
