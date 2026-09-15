@@ -141,6 +141,7 @@ class ExistingJarBundlePlugin implements Plugin<Project> {
 
              bundleSourceDir = new File(project.buildDir, BUNDLES_STAGING_FOLDER)
              eclipseSdkExe.convention(project.provider { Config.on(project).eclipseSdkExe.path })
+             eclipseSdkJavaExe.convention(project.provider { Config.on(project).eclipseSdkJavaExe.path })
              targetRepositoryDir = new File(project.buildDir, P2_REPOSITORY_FOLDER)
         }
     }

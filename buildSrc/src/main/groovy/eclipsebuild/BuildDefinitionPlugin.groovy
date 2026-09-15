@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.Directory
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.plugins.JvmToolchainsPlugin
 import org.gradle.api.provider.Provider
 import org.gradle.process.ExecOperations
 
@@ -199,6 +200,9 @@ class BuildDefinitionPlugin implements Plugin<Project> {
     }
 
     static void configureProject(Project project) {
+        // make the toolchain service available, so that the Eclipse SDK can be launched with a known Java version
+        project.pluginManager.apply(JvmToolchainsPlugin)
+
         // add extension
         project.extensions.create(DSL_EXTENSION_NAME, EclipseBuild)
 
@@ -270,6 +274,7 @@ class BuildDefinitionPlugin implements Plugin<Project> {
             }
 
             eclipseSdkExe.convention(project.provider { Config.on(project).eclipseSdkExe.path })
+            eclipseSdkJavaExe.convention(project.provider { Config.on(project).eclipseSdkJavaExe.path })
             repositoryMirrorUrls.convention(project.hasProperty('repository.mirrors') ? project.property('repository.mirrors') as String : null)
 
             onlyIf {
@@ -367,6 +372,7 @@ class BuildDefinitionPlugin implements Plugin<Project> {
                     '-roaming',
                     '-nosplash',
                     '-consoleLog',
+                    '-vm', config.eclipseSdkJavaExe.path,
                     '-vmargs', '-Declipse.p2.mirror=false')
 
             it.ignoreExitValue = true
@@ -392,6 +398,7 @@ class BuildDefinitionPlugin implements Plugin<Project> {
                     '-roaming',
                     '-nosplash',
                     '-consoleLog',
+                    '-vm', config.eclipseSdkJavaExe.path,
                     '-vmargs', '-Declipse.p2.mirror=false')
         }
     }

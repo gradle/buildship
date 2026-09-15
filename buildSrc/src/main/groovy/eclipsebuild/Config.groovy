@@ -16,6 +16,8 @@ import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
 
 /**
  * Holds configuration-dependent settings for the plug-ins.
@@ -89,6 +91,18 @@ class Config {
 
     File getEclipseSdkExe() {
         new File(eclipseSdkDir, Constants.eclipseExePath)
+    }
+
+    /**
+     * The Java executable that the Eclipse SDK is launched with, passed to the launcher as {@code -vm}.
+     *
+     * @see Constants#getEclipseSdkJavaVersion()
+     */
+    File getEclipseSdkJavaExe() {
+        JavaToolchainService toolchains = project.rootProject.extensions.getByType(JavaToolchainService)
+        toolchains.launcherFor {
+            it.languageVersion = JavaLanguageVersion.of(Constants.eclipseSdkJavaVersion)
+        }.get().executablePath.asFile
     }
 
     File getJarProcessorJar() {

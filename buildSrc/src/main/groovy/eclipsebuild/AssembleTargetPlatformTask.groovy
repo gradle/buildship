@@ -26,6 +26,15 @@ abstract class AssembleTargetPlatformTask extends DefaultTask {
     @Input
     abstract Property<String> getEclipseSdkExe()
 
+    /**
+     * The Java executable the Eclipse SDK is launched with. It is an absolute path specific to the machine, so it is
+     * not an input.
+     *
+     * @see Constants#getEclipseSdkJavaVersion()
+     */
+    @Internal
+    abstract Property<String> getEclipseSdkJavaExe()
+
     @Optional
     @Input
     abstract Property<String> getRepositoryMirrorUrls()
@@ -107,6 +116,7 @@ abstract class AssembleTargetPlatformTask extends DefaultTask {
                 '-roaming',
                 '-nosplash',
                 '-consoleLog',
+                '-vm', getEclipseSdkJavaExe().get(),
                 '-vmargs', '-Declipse.p2.mirror=false')
 
             it.ignoreExitValue = true
@@ -132,6 +142,7 @@ abstract class AssembleTargetPlatformTask extends DefaultTask {
                 '-roaming',
                 '-nosplash',
                 '-consoleLog',
+                '-vm', getEclipseSdkJavaExe().get(),
                 '-vmargs', '-Declipse.p2.mirror=false')
         }
     }

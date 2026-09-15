@@ -354,6 +354,7 @@ class UpdateSitePlugin implements Plugin<Project> {
             it.errorOutput = new LogOutputStream(project.logger, LogLevel.INFO, LogOutputStream.Type.STDERR)
             it.commandLine(Config.on(project).eclipseSdkExe,
                     '-nosplash',
+                    '-vm', Config.on(project).eclipseSdkJavaExe.path,
                     '-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
                     '-metadataRepository', repositoryDir.toURI().toURL(),
                     '-artifactRepository', repositoryDir.toURI().toURL(),
@@ -372,6 +373,7 @@ class UpdateSitePlugin implements Plugin<Project> {
             it.errorOutput = new LogOutputStream(project.logger, LogLevel.INFO, LogOutputStream.Type.STDERR)
             it.commandLine(Config.on(project).eclipseSdkExe,
                     '-nosplash',
+                    '-vm', Config.on(project).eclipseSdkJavaExe.path,
                     '-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher',
                     '-metadataRepository', repositoryDir.toURI().toURL(),
                     '-categoryDefinition',  project.updateSite.siteDescriptor.toURI().toURL(),

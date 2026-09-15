@@ -7,6 +7,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
@@ -20,6 +21,15 @@ abstract class CreateP2RepositoryTask extends DefaultTask {
 
     @Input
     abstract Property<String> getEclipseSdkExe()
+
+    /**
+     * The Java executable the Eclipse SDK is launched with. It is an absolute path specific to the machine, so it is
+     * not an input.
+     *
+     * @see eclipsebuild.Constants#getEclipseSdkJavaVersion()
+     */
+    @Internal
+    abstract Property<String> getEclipseSdkJavaExe()
 
     @OutputDirectory
     File targetRepositoryDir
@@ -35,6 +45,7 @@ abstract class CreateP2RepositoryTask extends DefaultTask {
             it.errorOutput = new LogOutputStream(getLogger(), LogLevel.INFO, LogOutputStream.Type.STDERR)
             it.commandLine(getEclipseSdkExe().get(),
                 '-nosplash',
+                '-vm', getEclipseSdkJavaExe().get(),
                 '-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
                 '-metadataRepository', targetRepositoryDir.toURI().toURL(),
                 '-artifactRepository', targetRepositoryDir.toURI().toURL(),

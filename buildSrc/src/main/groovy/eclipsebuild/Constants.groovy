@@ -79,6 +79,19 @@ class Constants {
 
 
     /**
+     * Returns the Java version that the Eclipse SDK is launched with.
+     * <p/>
+     * The Eclipse launcher otherwise picks a JVM from the machine's defaults. The bundled Eclipse SDK predates the
+     * XML parser hardening that later JDKs enable by default, so on a machine whose default JDK is too new the p2
+     * applications fail to parse update site metadata with a JAXP entity size error.
+     *
+     * @return the Java language version used to run the Eclipse SDK
+     */
+    static int getEclipseSdkJavaVersion() {
+        return 21
+    }
+
+    /**
      * Returns the group ID of the mavenized Eclipse plugins.
      *
      * @return the group ID referencing Eclipse plugins of the mavenized target platform
